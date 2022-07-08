@@ -6,6 +6,7 @@ public class PlayerController : MonoBehaviour
 {
 
     private float movementInputDirection; // 水平输入
+    private float jumpTimer;
 
     private int amountOfJumpsLeft; // 剩余跳跃次数计数
     private int facingDirection = 1; // 面向方向
@@ -15,7 +16,10 @@ public class PlayerController : MonoBehaviour
     private bool isGrounded; // 是否接触地面
     private bool isTouchingWall; // 是否接触墙面
     private bool isWallSliding; // 是否在滑墙
-    private bool canJump; // 是否能跳跃
+    //private bool canJump; // 是否能跳跃
+    private bool canNormalJump;
+    private bool canWallJump;
+    private bool isAttemptingToJump; // 是否想要跳跃(在还不满足跳跃条件的时候)
 
     private Rigidbody2D rb;
     private Animator anim;
@@ -30,8 +34,10 @@ public class PlayerController : MonoBehaviour
     public float movementForceInAir;  // 在空中移动时施加给角色的力的大小
     public float airDragMultiplier = 0.95f; // 空气阻力系数 
     public float variableJumpHeightMultiplier = 0.5f; // 可变跳跃高度系数, 参见 CheckInput() 方法
-    public float wallHopForce; 
-    public float wallJumpForce;
+    public float wallHopForce;  // 从墙上跳下来的力度
+    public float wallJumpForce; // 从墙上蹬墙跳(向上)的力度
+    public float jumpTimerSet = 0.15f;
+    
 
     public Vector2 wallHopDirection;
     public Vector2 wallJumpDirection;
@@ -59,6 +65,7 @@ public class PlayerController : MonoBehaviour
         UpdateAnimations();
         CheckIfCanJump();
         CheckIfWallSliding(); // 检测当前是否该进行滑墙
+        CheckJump();
     }
 
     private void FixedUpdate()
@@ -72,7 +79,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void CheckIfWallSliding()
     {
-        if (isTouchingWall && !isGrounded && rb.velocity.y < 0)
+        if (isTouchingWall && movementInputDirection == facingDirection) // 触墙且输入方向和面向方向(对着墙)相同
         {
             isWallSliding = true;
         }
@@ -93,22 +100,27 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// 判断Player能否进行跳跃
+    /// 判断Player能否进行地面跳跃或者反墙跳
     /// </summary>
     private void CheckIfCanJump()
     {
-        if((isGrounded && rb.velocity.y <= 0) || isWallSliding)
+        if(isGrounded && rb.velocity.y <= 0.01F)
         {
-            amountOfJumpsLeft = amountOfJumps; // 当 Player 接触地面 或者 滑墙时 重置 Player跳跃次数 (来允许通过翻墙跳达到高处)
+            amountOfJumpsLeft = amountOfJumps; // 重置 Player跳跃次数
+        }
+
+        if(isTouchingWall)
+        {
+            canWallJump = true;
         }
 
         if(amountOfJumpsLeft <= 0)
         {
-            canJump = false; // 跳跃计数用完则不能跳跃
+            canNormalJump = false; // 跳跃计数用完则不能跳跃
         }
         else
         {
-            canJump = true;
+            canNormalJump = true;
         }
       
     }
@@ -159,7 +171,15 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetButtonDown("Jump"))
         {
-            Jump();
+            if(isGrounded || (amountOfJumpsLeft > 0 && isTouchingWall))
+            {
+                NormalJump();
+            }
+            else
+            {
+                jumpTimer = jumpTimerSet;
+                isAttemptingToJump = true;
+            }
         }
         
         // 当我们长按空格, 和之前跳的一样高, 短按空格就可以小跳
@@ -171,56 +191,84 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// 跳跃
+    /// 跳跃检查, 当玩家在不能跳跃的时候点击了跳跃键, 则启动一个计时器, 如果在计时器时间内满足了跳跃条件,则进行相应的跳跃(地面跳跃/反墙跳)
     /// </summary>
-    private void Jump()
+    private void CheckJump()
     {
-        if (canJump && !isWallSliding) // 地面上的跳跃
+        if (jumpTimer > 0)
+        {
+            //WallJump
+            if (!isGrounded && isTouchingWall && movementInputDirection != 0 && movementInputDirection != facingDirection) 
+            {
+                WallJump();
+            }
+            else if(isGrounded)
+            {
+                NormalJump();
+            }
+        }
+
+        if(isAttemptingToJump)
+        {
+            jumpTimer -= Time.deltaTime;
+        }
+    }
+
+    /// <summary>
+    /// 地面跳跃
+    /// </summary>
+    private void NormalJump()
+    {
+        //if (canJump && !isWallSliding) // 地面上的跳跃
+        if(canNormalJump)
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
             amountOfJumpsLeft--;
+
+            #region 取消 JumpCheck
+            jumpTimer = 0;
+            isAttemptingToJump = false;
+            #endregion
         }
-        else if (isWallSliding && movementInputDirection == 0 && canJump) //Wall hop 蹬墙跳(从墙上跳下来)
+    }
+
+    /// <summary>
+    /// 反墙跳
+    /// </summary>
+    private void WallJump()
+    {
+        //if ((isWallSliding || isTouchingWall) && movementInputDirection != 0 && canJump) // Wall Jump 蹬墙跳(向上跳) isWallSliding || isTouchingWall贴住墙可以立即反墙跳
+        if(canWallJump)
         {
+            rb.velocity = new Vector2(rb.velocity.x, 0); // 跳跃前先重置Y方向的速度, 可以保证跳跃的手感一致
             isWallSliding = false;
-            amountOfJumpsLeft--;
-            Vector2 forceToAdd = new Vector2(wallHopForce * wallHopDirection.x * -facingDirection, wallHopForce * wallHopDirection.y); // 向人物面向反方向施加的力
-            rb.AddForce(forceToAdd, ForceMode2D.Impulse);
-        }
-        else if((isWallSliding || isTouchingWall) && movementInputDirection != 0 && canJump) // Wall Jump 蹬墙跳(向上跳) isWallSliding || isTouchingWall贴住墙可以立即反墙跳
-        {
-            isWallSliding = false;
+            amountOfJumpsLeft = amountOfJumps; // 从墙面跳跃和地面跳跃一样是总跳跃次数-1
             amountOfJumpsLeft--;
             Vector2 forceToAdd = new Vector2(wallJumpForce * wallJumpDirection.x * movementInputDirection, wallJumpForce * wallJumpDirection.y); // 向人物输出面向方向添加的力, 根据水平输入控制追加力的方向
             rb.AddForce(forceToAdd, ForceMode2D.Impulse);
+
+            #region 取消 JumpCheck
+            jumpTimer = 0;
+            isAttemptingToJump = false;
+            #endregion
         }
     }
 
     /// <summary>
     /// 驱动角色移动
-    /// 我们不希望角色在空中能像地面一样移动, 所以角色在空中通过施加力移动
     /// </summary>
     private void ApplyMovement()
     {
-        if (isGrounded) // 当角色在地面, 输入会直接改变角色的水平速度
-        {
-            rb.velocity = new Vector2(movementSpeed * movementInputDirection, rb.velocity.y);
-        }
-        else if(!isGrounded && !isWallSliding && movementInputDirection != 0) // 角色在空中且有水平输入
-        {
-            Vector2 forceToAdd = new Vector2(movementForceInAir * movementInputDirection, 0);
-            rb.AddForce(forceToAdd); // 我们不希望角色在空中能像地面一样移动, 所以角色在空中通过施加力移动
 
-            if (Mathf.Abs(rb.velocity.x) > movementSpeed) // 钳制通过力使角色移动时角色的速度不会超过地面上移动的速度
-            {
-                rb.velocity = new Vector2(movementSpeed * movementInputDirection, rb.velocity.y);
-            }
-        }
-        else if(!isGrounded && !isWallSliding && movementInputDirection == 0) // 角色在空中且无水平输入
+        if (!isGrounded && !isWallSliding && movementInputDirection == 0) // 角色在空中且无水平输入
         {
             rb.velocity = new Vector2(rb.velocity.x * airDragMultiplier, rb.velocity.y); // 水平方向速度受空气阻力系数相乘, 保持减速趋势 // 设置为0 就是松开按键立即停止(类似空洞骑士那种手感)?
         }
-
+        else
+        {
+            rb.velocity = new Vector2(movementSpeed * movementInputDirection, rb.velocity.y);
+        }
+        
         if (isWallSliding) // 角色在滑墙
         {
             if(rb.velocity.y < -wallSlideSpeed)
