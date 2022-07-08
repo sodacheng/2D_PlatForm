@@ -5,7 +5,7 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     #region 变量
-    
+
     private float movementInputDirection; // 水平输入
     private float jumpTimer;
     private float turnTimer;
@@ -26,10 +26,17 @@ public class PlayerController : MonoBehaviour
     private bool isAttemptingToJump; // 是否想要跳跃(在还不满足跳跃条件的时候)
     private bool checkJumpMultipier; // 用于小跳, 当Player在跳跃中松开空格, 则对Y轴进行减速, 限制Y轴方向的跳跃高度
     private bool hasWallJumped;
+    private bool isTouchingLedge; // 攀爬射线检测
+    private bool canClimbLedge = false; // 能否攀爬
+    private bool ledgeDetected;
 
     // 添加这两个bool 是为了优化反墙跳时的判读
     private bool canMove;
     private bool canFlip;
+
+    private Vector2 ledgePosBot; // 攀爬检测时墙壁射线击中的位置
+    private Vector2 ledgePos1; // 攀爬检测
+    private Vector2 ledgePos2; // 攀爬检测
 
     private Rigidbody2D rb;
     private Animator anim;
@@ -50,11 +57,17 @@ public class PlayerController : MonoBehaviour
     public float turnTimerSet = 0.1f;
     public float wallJumpTimerSet = 0.5f;
 
+    public float ledgeClimbXOffset1 = 0f;
+    public float ledgeClimbYOffset1 = 0f;
+    public float ledgeClimbXOffset2 = 0f;
+    public float ledgeClimbYOffset2 = 0f;
+
     public Vector2 wallHopDirection;
     public Vector2 wallJumpDirection;
 
     public Transform groundCheck;
     public Transform wallCheck;
+    public Transform ledgeCheck; // 攀爬检测
 
     public LayerMask whatIsGround; // Layer层 -> 在Inspector中选择Ground层
     #endregion
@@ -77,6 +90,7 @@ public class PlayerController : MonoBehaviour
         CheckIfCanJump();
         CheckIfWallSliding(); // 检测当前是否该进行滑墙
         CheckJump();
+        CheckLedgeClimb();
     }
 
     private void FixedUpdate()
@@ -90,7 +104,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void CheckIfWallSliding()
     {
-        if (isTouchingWall && movementInputDirection == facingDirection && rb.velocity.y < 0) // 触墙且输入方向和面向方向(对着墙)相同 [只有贴墙向下的时候才表现为滑墙, 向上则不会]
+        if (isTouchingWall && movementInputDirection == facingDirection && rb.velocity.y < 0 && !canClimbLedge) // 触墙且输入方向和面向方向(对着墙)相同 [只有贴墙向下的时候才表现为滑墙, 向上则不会] [在攀爬的时候不会滑墙]
         {
             isWallSliding = true;
         }
@@ -98,6 +112,52 @@ public class PlayerController : MonoBehaviour
         {
             isWallSliding = false;
         }
+    }
+
+    private void CheckLedgeClimb()
+    {
+        if (ledgeDetected && !canClimbLedge)
+        {
+            canClimbLedge = true;
+
+            if (isFacingRight)
+            {
+                // 因为我们的瓷砖是一个一个单位的 所以使用 Mathf.Floor() 指向瓷砖的角落 (左边)
+                ledgePos1 = new Vector2(Mathf.Floor(ledgePosBot.x + wallCheckDistance) - ledgeClimbXOffset1, Mathf.Floor(ledgePosBot.y) + ledgeClimbYOffset1);
+                ledgePos2 = new Vector2(Mathf.Floor(ledgePosBot.x + wallCheckDistance) + ledgeClimbXOffset2, Mathf.Floor(ledgePosBot.y) + ledgeClimbYOffset2);
+            }
+            else
+            {
+                // 因为我们的瓷砖是一个一个单位的 所以使用 Mathf.Ceil() 指向瓷砖的角落 (右边)
+                ledgePos1 = new Vector2(Mathf.Ceil(ledgePosBot.x - wallCheckDistance) + ledgeClimbXOffset1, Mathf.Floor(ledgePosBot.y) + ledgeClimbYOffset1);
+                ledgePos2 = new Vector2(Mathf.Ceil(ledgePosBot.x - wallCheckDistance) - ledgeClimbXOffset2, Mathf.Floor(ledgePosBot.y) + ledgeClimbYOffset2);
+            }
+
+            // 一旦获得了这两个点, 我们想要移除玩家的控制权,
+            canMove = false; // 在攀爬动画运行时 玩家无法移动角色
+            canFlip = false; // 同理
+            anim.SetBool("canClimbLedge", canClimbLedge);
+        }
+
+        if (canClimbLedge)
+        {
+            // 保持玩家的位置在Pos1
+            transform.position = ledgePos1;
+        }
+
+    }
+
+    /// <summary>
+    /// 结束攀爬时调用的函数
+    /// </summary>
+    public void FinishLedgeClimb()
+    {
+        canClimbLedge = false;
+        transform.position = ledgePos2;
+        canMove = true;
+        canFlip = true;
+        ledgeDetected = false;
+        anim.SetBool("canClimbLedge", canClimbLedge);
     }
 
     /// <summary>
@@ -108,6 +168,14 @@ public class PlayerController : MonoBehaviour
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, whatIsGround); // 是否触地
 
         isTouchingWall = Physics2D.Raycast(wallCheck.position, transform.right, wallCheckDistance, whatIsGround); // 是否触墙
+
+        isTouchingLedge = Physics2D.Raycast(ledgeCheck.position, transform.right, wallCheckDistance, whatIsGround); // 攀爬检测的射线, 当触墙且攀爬射线没有被阻挡时可以攀爬
+
+        if (isTouchingWall && !isTouchingLedge && !ledgeDetected)
+        {
+            ledgeDetected = true;
+            ledgePosBot = wallCheck.position;
+        }
     }
 
     /// <summary>
@@ -122,6 +190,7 @@ public class PlayerController : MonoBehaviour
 
         if (isTouchingWall)
         {
+            checkJumpMultipier = false;
             canWallJump = true;
         }
 
@@ -204,9 +273,10 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        if (!canMove)
+        if (turnTimer >= 0)
         {
             turnTimer -= Time.deltaTime;
+
             if (turnTimer <= 0)
             {
                 canMove = true;
@@ -265,11 +335,11 @@ public class PlayerController : MonoBehaviour
                 wallJumpTimer -= Time.deltaTime;
             }
         }
-        else if(wallJumpTimer <= 0)
+        else if (wallJumpTimer <= 0)
         {
             hasWallJumped = false;
         }
-        
+
         #endregion
 
     }
