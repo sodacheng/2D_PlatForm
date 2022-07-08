@@ -4,12 +4,16 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-
+    #region 变量
+    
     private float movementInputDirection; // 水平输入
     private float jumpTimer;
+    private float turnTimer;
+    private float wallJumpTimer;
 
     private int amountOfJumpsLeft; // 剩余跳跃次数计数
     private int facingDirection = 1; // 面向方向
+    private int lastWallJumpDirection; // 最后一次反墙跳的方向
 
     private bool isFacingRight = true; // 是否面向右方
     private bool isWalking; // 是否在走路
@@ -20,10 +24,16 @@ public class PlayerController : MonoBehaviour
     private bool canNormalJump;
     private bool canWallJump;
     private bool isAttemptingToJump; // 是否想要跳跃(在还不满足跳跃条件的时候)
+    private bool checkJumpMultipier; // 用于小跳, 当Player在跳跃中松开空格, 则对Y轴进行减速, 限制Y轴方向的跳跃高度
+    private bool hasWallJumped;
+
+    // 添加这两个bool 是为了优化反墙跳时的判读
+    private bool canMove;
+    private bool canFlip;
 
     private Rigidbody2D rb;
     private Animator anim;
-
+    [Header("需要将Rigidbody2D 的 碰撞检测改为连续")]
     public int amountOfJumps = 1; // 主角能跳跃的次数
 
     public float movementSpeed = 10.0f; // 移动速度
@@ -36,8 +46,9 @@ public class PlayerController : MonoBehaviour
     public float variableJumpHeightMultiplier = 0.5f; // 可变跳跃高度系数, 参见 CheckInput() 方法
     public float wallHopForce;  // 从墙上跳下来的力度
     public float wallJumpForce; // 从墙上蹬墙跳(向上)的力度
-    public float jumpTimerSet = 0.15f;
-    
+    public float jumpTimerSet = 0.15f; // 跳跃按键的缓冲时间, 如果按下跳跃按键时不满足跳跃条件,且在计时器内又重新满足跳跃条件, Player则会进行跳跃
+    public float turnTimerSet = 0.1f;
+    public float wallJumpTimerSet = 0.5f;
 
     public Vector2 wallHopDirection;
     public Vector2 wallJumpDirection;
@@ -46,18 +57,18 @@ public class PlayerController : MonoBehaviour
     public Transform wallCheck;
 
     public LayerMask whatIsGround; // Layer层 -> 在Inspector中选择Ground层
+    #endregion
 
-    // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
-        amountOfJumpsLeft = amountOfJumps; 
+
+        amountOfJumpsLeft = amountOfJumps;
         wallHopDirection.Normalize(); // 将方向归一化
         wallJumpDirection.Normalize(); // 将方向归一化
     }
 
-    // Update is called once per frame
     void Update()
     {
         CheckInput();
@@ -79,7 +90,7 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void CheckIfWallSliding()
     {
-        if (isTouchingWall && movementInputDirection == facingDirection) // 触墙且输入方向和面向方向(对着墙)相同
+        if (isTouchingWall && movementInputDirection == facingDirection && rb.velocity.y < 0) // 触墙且输入方向和面向方向(对着墙)相同 [只有贴墙向下的时候才表现为滑墙, 向上则不会]
         {
             isWallSliding = true;
         }
@@ -104,17 +115,17 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void CheckIfCanJump()
     {
-        if(isGrounded && rb.velocity.y <= 0.01F)
+        if (isGrounded && rb.velocity.y <= 0.01F)
         {
             amountOfJumpsLeft = amountOfJumps; // 重置 Player跳跃次数
         }
 
-        if(isTouchingWall)
+        if (isTouchingWall)
         {
             canWallJump = true;
         }
 
-        if(amountOfJumpsLeft <= 0)
+        if (amountOfJumpsLeft <= 0)
         {
             canNormalJump = false; // 跳跃计数用完则不能跳跃
         }
@@ -122,7 +133,7 @@ public class PlayerController : MonoBehaviour
         {
             canNormalJump = true;
         }
-      
+
     }
 
     /// <summary>
@@ -132,16 +143,16 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     private void CheckMovementDirection()
     {
-        if(isFacingRight && movementInputDirection < 0)
+        if (isFacingRight && movementInputDirection < 0)
         {
             Flip();
         }
-        else if(!isFacingRight && movementInputDirection > 0)
+        else if (!isFacingRight && movementInputDirection > 0)
         {
             Flip();
         }
 
-        if(rb.velocity.x != 0)
+        if (rb.velocity.x != 0)
         {
             isWalking = true;
         }
@@ -171,7 +182,7 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetButtonDown("Jump"))
         {
-            if(isGrounded || (amountOfJumpsLeft > 0 && isTouchingWall))
+            if (isGrounded || (amountOfJumpsLeft > 0 && isTouchingWall))
             {
                 NormalJump();
             }
@@ -181,11 +192,39 @@ public class PlayerController : MonoBehaviour
                 isAttemptingToJump = true;
             }
         }
-        
-        // 当我们长按空格, 和之前跳的一样高, 短按空格就可以小跳
-        if (Input.GetButtonUp("Jump"))
+
+        if (Input.GetButtonDown("Horizontal") && isTouchingWall)
         {
-            rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * variableJumpHeightMultiplier); 
+            if (!isGrounded && movementInputDirection != facingDirection)
+            {
+                canMove = false;
+                canFlip = false;
+
+                turnTimer = turnTimerSet;
+            }
+        }
+
+        if (!canMove)
+        {
+            turnTimer -= Time.deltaTime;
+            if (turnTimer <= 0)
+            {
+                canMove = true;
+                canFlip = true;
+            }
+        }
+
+        // 当我们长按空格, 和之前跳的一样高, 短按空格就可以小跳
+        //if (Input.GetButtonUp("Jump"))
+        //{
+        //    rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * variableJumpHeightMultiplier); 
+        //}
+
+        // 当在跳跃中松开了空格, 则将Y轴速度与Multiplier相乘
+        if (checkJumpMultipier && !Input.GetButton("Jump"))
+        {
+            checkJumpMultipier = false;
+            rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * variableJumpHeightMultiplier);
         }
 
     }
@@ -198,20 +237,41 @@ public class PlayerController : MonoBehaviour
         if (jumpTimer > 0)
         {
             //WallJump
-            if (!isGrounded && isTouchingWall && movementInputDirection != 0 && movementInputDirection != facingDirection) 
+            if (!isGrounded && isTouchingWall && movementInputDirection != 0 && movementInputDirection != facingDirection)
             {
                 WallJump();
             }
-            else if(isGrounded)
+            else if (isGrounded)
             {
                 NormalJump();
             }
         }
 
-        if(isAttemptingToJump)
+        if (isAttemptingToJump)
         {
             jumpTimer -= Time.deltaTime;
         }
+
+        #region 阻止玩家"单面上墙"
+        if (wallJumpTimer > 0)
+        {
+            if (hasWallJumped && movementInputDirection == -lastWallJumpDirection) // 在wallJumpTimer计时内玩家输入面向跳出的那面墙, 则会停止玩家上升, 阻止玩家"单面上墙"
+            {
+                rb.velocity = new Vector2(rb.velocity.x, 0);
+                hasWallJumped = false;
+            }
+            else
+            {
+                wallJumpTimer -= Time.deltaTime;
+            }
+        }
+        else if(wallJumpTimer <= 0)
+        {
+            hasWallJumped = false;
+        }
+        
+        #endregion
+
     }
 
     /// <summary>
@@ -220,7 +280,7 @@ public class PlayerController : MonoBehaviour
     private void NormalJump()
     {
         //if (canJump && !isWallSliding) // 地面上的跳跃
-        if(canNormalJump)
+        if (canNormalJump)
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
             amountOfJumpsLeft--;
@@ -229,6 +289,8 @@ public class PlayerController : MonoBehaviour
             jumpTimer = 0;
             isAttemptingToJump = false;
             #endregion
+
+            checkJumpMultipier = true;
         }
     }
 
@@ -238,7 +300,7 @@ public class PlayerController : MonoBehaviour
     private void WallJump()
     {
         //if ((isWallSliding || isTouchingWall) && movementInputDirection != 0 && canJump) // Wall Jump 蹬墙跳(向上跳) isWallSliding || isTouchingWall贴住墙可以立即反墙跳
-        if(canWallJump)
+        if (canWallJump)
         {
             rb.velocity = new Vector2(rb.velocity.x, 0); // 跳跃前先重置Y方向的速度, 可以保证跳跃的手感一致
             isWallSliding = false;
@@ -251,6 +313,21 @@ public class PlayerController : MonoBehaviour
             jumpTimer = 0;
             isAttemptingToJump = false;
             #endregion
+
+            checkJumpMultipier = true;
+
+            #region 反墙跳后恢复正常的控制状态
+            turnTimer = 0;
+            canMove = true;
+            canFlip = true;
+            #endregion
+
+            #region 阻止"单面上墙" - 更新状态 在 CheckJump() 中处理
+            hasWallJumped = true;
+            wallJumpTimer = wallJumpTimerSet;
+            lastWallJumpDirection = -facingDirection;
+            #endregion
+
         }
     }
 
@@ -264,14 +341,14 @@ public class PlayerController : MonoBehaviour
         {
             rb.velocity = new Vector2(rb.velocity.x * airDragMultiplier, rb.velocity.y); // 水平方向速度受空气阻力系数相乘, 保持减速趋势 // 设置为0 就是松开按键立即停止(类似空洞骑士那种手感)?
         }
-        else
+        else if (canMove)
         {
             rb.velocity = new Vector2(movementSpeed * movementInputDirection, rb.velocity.y);
         }
-        
+
         if (isWallSliding) // 角色在滑墙
         {
-            if(rb.velocity.y < -wallSlideSpeed)
+            if (rb.velocity.y < -wallSlideSpeed)
             {
                 rb.velocity = new Vector2(rb.velocity.x, -wallSlideSpeed);
             }
@@ -284,7 +361,7 @@ public class PlayerController : MonoBehaviour
     private void Flip()
     {
         // 当角色非滑墙状态时才会翻转
-        if (!isWallSliding)
+        if (!isWallSliding && canFlip)
         {
             facingDirection *= -1; // 变更角色的面向方向, 每次我们翻转角色的时候, 他都会在 1 和 -1 之前切换, 用于与归一化的表示方向的向量相乘
             isFacingRight = !isFacingRight;
