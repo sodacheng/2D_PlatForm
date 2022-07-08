@@ -41835,6 +41835,26 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2912980498320906810, guid: bea37de2cf3773e4cb2f0bd18e68827f,
+        type: 3}
+      propertyPath: m_SpriteTilingProperty.oldSize.x
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 2912980498320906810, guid: bea37de2cf3773e4cb2f0bd18e68827f,
+        type: 3}
+      propertyPath: m_SpriteTilingProperty.oldSize.y
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 2912980498320906811, guid: bea37de2cf3773e4cb2f0bd18e68827f,
+        type: 3}
+      propertyPath: amountOfJumps
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2912980498320906811, guid: bea37de2cf3773e4cb2f0bd18e68827f,
+        type: 3}
+      propertyPath: whatIsGround.m_Bits
+      value: 256
+      objectReference: {fileID: 0}
     - target: {fileID: 2912980498320906813, guid: bea37de2cf3773e4cb2f0bd18e68827f,
         type: 3}
       propertyPath: m_RootOrder
@@ -41894,6 +41914,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 8880475264361102751, guid: bea37de2cf3773e4cb2f0bd18e68827f,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.632
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: bea37de2cf3773e4cb2f0bd18e68827f, type: 3}
