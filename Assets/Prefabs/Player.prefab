@@ -130,16 +130,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   amountOfJumps: 1
-  movementSpeed: 10
-  jumpForce: 16
+  movementSpeed: 9
+  jumpForce: 20
   groundCheckRadius: 0.3
-  wallCheckDistance: 0.4
-  wallSlideSpeed: 2
+  wallCheckDistance: 0.65
+  wallSlideSpeed: 1
   movementForceInAir: 50
   airDragMultiplier: 0.95
   variableJumpHeightMultiplier: 0.5
   wallHopForce: 10
-  wallJumpForce: 20
+  wallJumpForce: 30
+  jumpTimerSet: 0.15
+  turnTimerSet: 0.1
+  wallJumpTimerSet: 0.5
   wallHopDirection: {x: 1, y: 0.5}
   wallJumpDirection: {x: 1, y: 2}
   groundCheck: {fileID: 2912980498701013238}
@@ -162,11 +165,11 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDrag: 0
   m_AngularDrag: 0.05
-  m_GravityScale: 4
+  m_GravityScale: 8
   m_Material: {fileID: 6200000, guid: 03301e8e8906d2941bd4c0e90755c817, type: 2}
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 4
 --- !u!61 &2912980498320906810
 BoxCollider2D:
