@@ -321,6 +321,11 @@ public class PlayerController : MonoBehaviour
 
     }
 
+    public int GetFacingDirection()
+    {
+        return facingDirection;
+    }
+
     /// <summary>
     /// 设置冲刺速度, 检测冲刺是否应该停止
     /// </summary>
