@@ -10,6 +10,9 @@ public class PlayerController : MonoBehaviour
     private float jumpTimer;
     private float turnTimer;
     private float wallJumpTimer;
+    private float dashTimeLeft; // 冲刺剩余时间
+    private float lastImageXpos;
+    private float lastDash = -100; // 跟踪上次冲刺开始的时间, 设置为负数, 让游戏一开始我们就能冲刺
 
     private int amountOfJumpsLeft; // 剩余跳跃次数计数
     private int facingDirection = 1; // 面向方向
@@ -29,6 +32,8 @@ public class PlayerController : MonoBehaviour
     private bool isTouchingLedge; // 攀爬射线检测
     private bool canClimbLedge = false; // 能否攀爬
     private bool ledgeDetected;
+
+    private bool isDashing; // 是否冲刺
 
     // 添加这两个bool 是为了优化反墙跳时的判读
     private bool canMove;
@@ -62,6 +67,11 @@ public class PlayerController : MonoBehaviour
     public float ledgeClimbXOffset2 = 0f;
     public float ledgeClimbYOffset2 = 0f;
 
+    public float dashTime; // 冲刺时间
+    public float dashSpeed; // 冲刺速度
+    public float distanceBetweenImages; // 冲刺时残像放置的间距
+    public float dashCoolDown; // 冲刺冷却;
+
     public Vector2 wallHopDirection;
     public Vector2 wallJumpDirection;
 
@@ -91,6 +101,7 @@ public class PlayerController : MonoBehaviour
         CheckIfWallSliding(); // 检测当前是否该进行滑墙
         CheckJump();
         CheckLedgeClimb();
+        CheckDash();
     }
 
     private void FixedUpdate()
@@ -284,12 +295,6 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // 当我们长按空格, 和之前跳的一样高, 短按空格就可以小跳
-        //if (Input.GetButtonUp("Jump"))
-        //{
-        //    rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * variableJumpHeightMultiplier); 
-        //}
-
         // 当在跳跃中松开了空格, 则将Y轴速度与Multiplier相乘
         if (checkJumpMultipier && !Input.GetButton("Jump"))
         {
@@ -297,6 +302,53 @@ public class PlayerController : MonoBehaviour
             rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * variableJumpHeightMultiplier);
         }
 
+
+        if(Input.GetButtonDown("Dash"))
+        {
+            if(Time.time >= (lastDash + dashCoolDown))
+            AttemptToDash();   
+        }
+    }
+
+    private void AttemptToDash()
+    {
+        isDashing = true;
+        dashTimeLeft = dashTime;
+        lastDash = Time.time;
+
+        PlayerAfterImagePool.Instance.GetFromPool();
+        lastImageXpos = transform.position.x;
+
+    }
+
+    /// <summary>
+    /// 设置冲刺速度, 检测冲刺是否应该停止
+    /// </summary>
+    private void CheckDash()
+    {
+        if (isDashing)
+        {
+            if(dashTimeLeft > 0)
+            {
+                canMove = false;
+                canFlip = false;
+                rb.velocity = new Vector2(dashSpeed * facingDirection, rb.velocity.y);
+                dashTimeLeft -= Time.deltaTime;
+
+                if (Mathf.Abs((transform.position.x - lastImageXpos)) > distanceBetweenImages)
+                {
+                    PlayerAfterImagePool.Instance.GetFromPool();
+                    lastImageXpos = transform.position.x;
+                }
+            }
+            
+            if(dashTimeLeft <= 0 ||isTouchingWall)
+            {
+                isDashing = false;
+                canMove = true;
+                canFlip = true;
+            }
+        }
     }
 
     /// <summary>
