@@ -1,11 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+[RequireComponent(typeof(Rigidbody2D))]
 
 public class PlayerController : MonoBehaviour
 {
     #region 变量
-
     private float movementInputDirection; // 水平输入
     private float jumpTimer;
     private float turnTimer;
@@ -46,7 +46,7 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private Animator anim;
     [Header("需要将Rigidbody2D 的 碰撞检测改为连续")]
-    public int amountOfJumps = 1; // 主角能跳跃的次数
+    public int amountOfJumps = 2; // 主角能跳跃的次数
 
     public float movementSpeed = 10.0f; // 移动速度
     public float jumpForce = 16.0f; // 跳跃力(设置速度)
@@ -262,7 +262,7 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetButtonDown("Jump"))
         {
-            if (isGrounded || (amountOfJumpsLeft > 0 && isTouchingWall))
+            if (isGrounded || (amountOfJumpsLeft > 0 && !isTouchingWall))
             {
                 NormalJump();
             }

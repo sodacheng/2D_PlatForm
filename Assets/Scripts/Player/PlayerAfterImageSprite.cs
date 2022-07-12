@@ -15,7 +15,9 @@ public class PlayerAfterImageSprite : MonoBehaviour
     private float alpha; // 记录当前SpriteRenderer的Color中的Alpha值
     [SerializeField]
     private float alphaSet = 0.8f; // 创建残影时Alpha的初始值
-    private float alphaMultiplier = 0.85f; // 残影的变化速度
+    [SerializeField]
+    private float alphaDecay; // alpha衰减
+    //private float alphaMultiplier = 0.85f; // 残影的变化速度
 
     private Transform player;
 
@@ -41,7 +43,7 @@ public class PlayerAfterImageSprite : MonoBehaviour
 
     private void Update()
     {
-        alpha *= alphaMultiplier; // 随时间淡化残影
+        alpha -= alphaDecay * Time.deltaTime; // 随时间淡化残影
         color = new Color(1, 1, 1, alpha);
         SR.color = color;
 
