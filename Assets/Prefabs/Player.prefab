@@ -71,11 +71,12 @@ GameObject:
   - component: {fileID: 2912980498320906813}
   - component: {fileID: 2912980498320906812}
   - component: {fileID: 2912980498320906811}
+  - component: {fileID: 813741234}
+  - component: {fileID: 1119198332}
   - component: {fileID: 2912980498320906815}
   - component: {fileID: 2912980498320906810}
   - component: {fileID: 2912980498320906808}
-  - component: {fileID: 813741234}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -90,7 +91,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2912980498320906814}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.5, y: 8.5, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 2912980498701013238}
@@ -137,7 +138,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -183529547
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: be658d3ccfe53144cafbd0301a62ee18, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -162,9 +163,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe7cdbd2a35568744bdeb2c6e962ce02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  knockbackDuration: 0.2
+  knockbackSpeed: {x: 10, y: 10}
   amountOfJumps: 2
   movementSpeed: 9
-  jumpForce: 20
+  jumpForce: 21
   groundCheckRadius: 0.3
   wallCheckDistance: 0.65
   wallSlideSpeed: 1
@@ -180,10 +183,10 @@ MonoBehaviour:
   ledgeClimbYOffset1: 0
   ledgeClimbXOffset2: 0.5
   ledgeClimbYOffset2: 2
-  dashTime: 0.2
+  dashTime: 0.1
   dashSpeed: 50
   distanceBetweenImages: 0.1
-  dashCoolDown: 2.5
+  dashCoolDown: 0.5
   wallHopDirection: {x: 1, y: 0.5}
   wallJumpDirection: {x: 1, y: 2}
   groundCheck: {fileID: 2912980498701013238}
@@ -192,6 +195,43 @@ MonoBehaviour:
   whatIsGround:
     serializedVersion: 2
     m_Bits: 256
+--- !u!114 &813741234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2912980498320906814}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0bfd5224267771245b51f25a93071187, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  combatEnabled: 1
+  inputTimer: 0.2
+  attack1Radius: 0.8
+  attack1Damage: 10
+  attack1HitBosPos: {fileID: 1242585364}
+  whatIsDamageable:
+    serializedVersion: 2
+    m_Bits: 512
+--- !u!114 &1119198332
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2912980498320906814}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce5a5275978476646b943b7e6522c2a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 50
+  deathChunkParticle: {fileID: 1355699525755143403, guid: 0426a165a541c044b87d08e92b76e633,
+    type: 3}
+  deathBloodParticle: {fileID: 230157697733054675, guid: 195d7ad7a7645fd4081cb14dba609cf1,
+    type: 3}
 --- !u!50 &2912980498320906815
 Rigidbody2D:
   serializedVersion: 4
@@ -207,7 +247,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDrag: 0
   m_AngularDrag: 0.05
-  m_GravityScale: 6
+  m_GravityScale: 8
   m_Material: {fileID: 6200000, guid: 03301e8e8906d2941bd4c0e90755c817, type: 2}
   m_Interpolate: 0
   m_SleepingMode: 1
@@ -258,26 +298,6 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
---- !u!114 &813741234
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2912980498320906814}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0bfd5224267771245b51f25a93071187, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  combatEnabled: 1
-  inputTimer: 0.2
-  attack1Radius: 0.8
-  attack1Damage: 10
-  attack1HitBosPos: {fileID: 1242585364}
-  whatIsDamageable:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!1 &2912980498701013241
 GameObject:
   m_ObjectHideFlags: 0

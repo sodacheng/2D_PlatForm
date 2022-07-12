@@ -19,7 +19,12 @@ public class BasicEnemyController : MonoBehaviour
         wallCheckDistance,
         movementSpeed,
         maxHealth,
-        knockbackDuration;
+        knockbackDuration,
+        lastTouchDamageTime,
+        touchDamageCooldown,// 对Player造成伤害的冷却时间
+        touchDamage,
+        touchDamageWidth,
+        touchDamageHeight;
 
     private bool
         groundDetected, // 地面检测
@@ -38,21 +43,32 @@ public class BasicEnemyController : MonoBehaviour
         currentHealth,
         knockbackStartTime;
 
-    private Vector2 movement;
+    private float[] attackDetails = new float[2];
+
+    private Vector2
+        movement,
+        touchDamageBotLeft,
+        touchDamageTopRight;
 
     [SerializeField]
     private Transform
         groundCheck,
-        wallCheck;
+        wallCheck,
+        touchDamageCheck;
 
     [SerializeField]
-    private LayerMask whatIsGround;
+    private LayerMask
+        whatIsGround,
+        whatIsPlayer;
 
     [SerializeField]
     private Vector2 knockbackSpeed;
 
     [SerializeField]
-    private GameObject hitParticle, deathChunkParticle, deathBloodParticle;
+    private GameObject
+        hitParticle,
+        deathChunkParticle,
+        deathBloodParticle;
 
     private void Start()
     {
@@ -93,6 +109,8 @@ public class BasicEnemyController : MonoBehaviour
     {
         groundDetected = Physics2D.Raycast(groundCheck.position, Vector2.down, groundCheckDistance, whatIsGround);
         wallDetected = Physics2D.Raycast(wallCheck.position, transform.right, wallCheckDistance, whatIsGround);
+
+        CheckTouchDamage();
 
         if (!groundDetected || wallDetected)
         {
@@ -137,8 +155,8 @@ public class BasicEnemyController : MonoBehaviour
     private void EnterDeadState()
     {
         // 实例化血液粒子 和 碎块
-        Instantiate(deathChunkParticle,alive.transform.position, deathChunkParticle.transform.rotation);
-        Instantiate(deathBloodParticle,alive.transform.position, deathBloodParticle.transform.rotation);
+        Instantiate(deathChunkParticle, alive.transform.position, deathChunkParticle.transform.rotation);
+        Instantiate(deathBloodParticle, alive.transform.position, deathBloodParticle.transform.rotation);
 
         Destroy(gameObject);
     }
@@ -181,6 +199,29 @@ public class BasicEnemyController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 检测触碰伤害
+    /// </summary>
+    private void CheckTouchDamage()
+    {
+        if (Time.time >= lastTouchDamageTime + touchDamageCooldown)
+        {
+            touchDamageBotLeft.Set(touchDamageCheck.position.x - (touchDamageWidth / 2), touchDamageCheck.position.y - (touchDamageHeight / 2));
+            touchDamageTopRight.Set(touchDamageCheck.position.x + (touchDamageWidth / 2), touchDamageCheck.position.y + (touchDamageHeight / 2));
+
+            Collider2D hit = Physics2D.OverlapArea(touchDamageBotLeft, touchDamageTopRight, whatIsPlayer);
+
+            if (hit != null)
+            {
+                lastTouchDamageTime = Time.time;
+                attackDetails[0] = touchDamage;
+                attackDetails[1] = alive.transform.position.x;
+                hit.SendMessage("Damage", attackDetails);
+            }
+        }
+
+        
+    }
 
     private void Flip()
     {
@@ -226,5 +267,16 @@ public class BasicEnemyController : MonoBehaviour
     {
         Gizmos.DrawLine(groundCheck.position, new Vector2(groundCheck.position.x, groundCheck.position.y - groundCheckDistance));
         Gizmos.DrawLine(wallCheck.position, new Vector2(wallCheck.position.x + wallCheckDistance, wallCheck.position.y));
+
+
+        Vector2 botLeft = new Vector2(touchDamageCheck.position.x - (touchDamageWidth / 2), touchDamageCheck.position.y - (touchDamageHeight / 2));
+        Vector2 botRight = new Vector2(touchDamageCheck.position.x + (touchDamageWidth / 2), touchDamageCheck.position.y - (touchDamageHeight / 2));
+        Vector2 topRight = new Vector2(touchDamageCheck.position.x + (touchDamageWidth / 2), touchDamageCheck.position.y + (touchDamageHeight / 2));
+        Vector2 topLeft = new Vector2(touchDamageCheck.position.x - (touchDamageWidth / 2), touchDamageCheck.position.y + (touchDamageHeight / 2));
+
+        Gizmos.DrawLine(botLeft, botRight);
+        Gizmos.DrawLine(botRight, topRight);
+        Gizmos.DrawLine(topRight, topLeft);
+        Gizmos.DrawLine(topLeft, botLeft);
     }
 }

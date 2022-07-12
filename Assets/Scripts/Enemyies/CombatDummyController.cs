@@ -50,10 +50,17 @@ public class CombatDummyController : MonoBehaviour
         CheckKnockback();
     }
 
-    private void Damage(float amount)
+    private void Damage(float[] details)
     {
-        currentHealth -= amount;
-        playerFacingDirection = pc.GetFacingDirection();
+        currentHealth -= details[0];
+        if (details[1] < aliveGO.transform.position.x)
+        {
+            playerFacingDirection = 1;
+        }
+        else
+        {
+            playerFacingDirection = -1;
+        }
 
         Instantiate(hitParticle, aliveGO.transform.position, Quaternion.Euler(0, 0, Random.Range(0.0f, 360.0f))); // 随机旋转生成在敌人位置的粒子效果
 

@@ -13,6 +13,9 @@ public class PlayerController : MonoBehaviour
     private float dashTimeLeft; // 冲刺剩余时间
     private float lastImageXpos;
     private float lastDash = -100; // 跟踪上次冲刺开始的时间, 设置为负数, 让游戏一开始我们就能冲刺
+    private float knockbackStartTime;
+    [SerializeField]
+    private float knockbackDuration;
 
     private int amountOfJumpsLeft; // 剩余跳跃次数计数
     private int facingDirection = 1; // 面向方向
@@ -32,12 +35,15 @@ public class PlayerController : MonoBehaviour
     private bool isTouchingLedge; // 攀爬射线检测
     private bool canClimbLedge = false; // 能否攀爬
     private bool ledgeDetected;
-
     private bool isDashing; // 是否冲刺
+    private bool knockback;
 
     // 添加这两个bool 是为了优化反墙跳时的判读
     private bool canMove;
     private bool canFlip;
+
+    [SerializeField]
+    private Vector2 knockbackSpeed; 
 
     private Vector2 ledgePosBot; // 攀爬检测时墙壁射线击中的位置
     private Vector2 ledgePos1; // 攀爬检测
@@ -102,6 +108,7 @@ public class PlayerController : MonoBehaviour
         CheckJump();
         CheckLedgeClimb();
         CheckDash();
+        CheckKnockback();
     }
 
     private void FixedUpdate()
@@ -122,6 +129,27 @@ public class PlayerController : MonoBehaviour
         else
         {
             isWallSliding = false;
+        }
+    }
+
+    public bool GetDashStatus()
+    {
+        return isDashing;
+    }
+
+    public void Knockback(int direction)
+    {
+        knockback = true;
+        knockbackStartTime = Time.time;
+        rb.velocity = new Vector2(knockbackSpeed.x * direction, knockbackSpeed.y);
+    }
+
+    private void CheckKnockback()
+    {
+        if(Time.time > knockbackStartTime + knockbackDuration &&knockback)
+        {
+            knockback = false;
+            rb.velocity = new Vector2(0, rb.velocity.y);
         }
     }
 
@@ -464,11 +492,11 @@ public class PlayerController : MonoBehaviour
     private void ApplyMovement()
     {
 
-        if (!isGrounded && !isWallSliding && movementInputDirection == 0) // 角色在空中且无水平输入
+        if (!isGrounded && !isWallSliding && movementInputDirection == 0 && !knockback) // 角色在空中且无水平输入
         {
             rb.velocity = new Vector2(rb.velocity.x * airDragMultiplier, rb.velocity.y); // 水平方向速度受空气阻力系数相乘, 保持减速趋势 // 设置为0 就是松开按键立即停止(类似空洞骑士那种手感)?
         }
-        else if (canMove)
+        else if (canMove && !knockback) // 运动不能覆盖击退
         {
             rb.velocity = new Vector2(movementSpeed * movementInputDirection, rb.velocity.y);
         }
@@ -499,13 +527,14 @@ public class PlayerController : MonoBehaviour
     private void Flip()
     {
         // 当角色非滑墙状态时才会翻转
-        if (!isWallSliding && canFlip)
+        if (!isWallSliding && canFlip && !knockback)
         {
             facingDirection *= -1; // 变更角色的面向方向, 每次我们翻转角色的时候, 他都会在 1 和 -1 之前切换, 用于与归一化的表示方向的向量相乘
             isFacingRight = !isFacingRight;
             transform.Rotate(0.0f, 180.0f, 0.0f);
         }
     }
+
 
     /// <summary>
     /// 在Scene标注判定范围变化
@@ -516,4 +545,5 @@ public class PlayerController : MonoBehaviour
 
         Gizmos.DrawLine(wallCheck.position, new Vector3(wallCheck.position.x + wallCheckDistance, wallCheck.position.y, wallCheck.position.z));
     }
+
 }
