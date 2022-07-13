@@ -25,10 +25,13 @@ public class E1_PlayerDetectedState : PlayerDetectedState
         base.LogicUpdate();
 
         // 切换状态
-        if(!isPlayerInMaxAgroRange)
+        if(performLongRangeAction) // 玩家还在怪物的最大仇恨范围内
         {
-            enemy.idleState.SetFlipAfterIdle(false);
-            stateMachine.ChangeState(enemy.idleState);
+            stateMachine.ChangeState(enemy.chargeState);
+        }
+        else if(!isPlayerInMaxAgroRange) // 玩家不在怪物的仇恨范围内
+        {
+            stateMachine.ChangeState(enemy.lookForPlayerState);
         }
 
     }
