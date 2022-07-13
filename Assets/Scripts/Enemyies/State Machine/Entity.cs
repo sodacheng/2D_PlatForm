@@ -23,6 +23,8 @@ public class Entity : MonoBehaviour
     private Transform wallCheck;
     [SerializeField]
     private Transform ledgeCheck;
+    [SerializeField]
+    private Transform playerCheck;
 
     private Vector2 velocityWorkSpace; // 用于设置速度时 使用的变量
 
@@ -71,6 +73,25 @@ public class Entity : MonoBehaviour
     {
         return Physics2D.Raycast(ledgeCheck.position, Vector2.down, entityData.ledgeCheckDistance, entityData.whatIsGround);
     }
+    
+    /// <summary>
+    /// 检测玩家(近距离)
+    /// </summary>
+    /// <returns></returns>
+    public virtual bool CheckPlayerInMinAgroRange()
+    {
+        return Physics2D.Raycast(playerCheck.position, aliveGO.transform.right, entityData.minAgroDistance, entityData.whatIsPlayer);
+    }
+
+    /// <summary>
+    /// 检测玩家(远距离) - 最大仇恨距离
+    /// </summary>
+    /// <returns></returns>
+    public virtual bool CheckPlayerInMaxAgroRange()
+    {
+        return Physics2D.Raycast(playerCheck.position, aliveGO.transform.right, entityData.maxAgroDistance, entityData.whatIsPlayer);
+    }
+
     
     /// <summary>
     /// 翻转

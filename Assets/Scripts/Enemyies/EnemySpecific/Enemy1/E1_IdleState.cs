@@ -24,7 +24,12 @@ public class E1_IdleState : IdleState
     {
         base.LogicUpdate();
 
-        if (isIdleTimeOver)
+        // 检测到玩家 进入仇恨状态
+        if(isPlayerInMinAgroRange)
+        {
+            stateMachine.ChangeState(enemy.playerDetectedState);
+        }
+        else if (isIdleTimeOver)
         {
             stateMachine.ChangeState(enemy.moveState); // 切换到移动状态
         }

@@ -25,7 +25,14 @@ public class E1_MoveState : MoveState
     {
         base.LogicUpdate();
 
-        if(isDetectingWall || !isDetectingLedge)
+        // 检测到玩家进入范围 切换状态 产生仇恨
+        if(isPlayerInMinAgroRange)
+        {
+            stateMachine.ChangeState(enemy.playerDetectedState);
+        }
+
+        // 检测到墙壁 道路尽头 -> 进入空闲状态 且退出空闲状态时转身
+        else if(isDetectingWall || !isDetectingLedge)
         {
             enemy.idleState.SetFlipAfterIdle(true); // 在退出空闲状态后会转身
             stateMachine.ChangeState(enemy.idleState);// 转换到空闲状态

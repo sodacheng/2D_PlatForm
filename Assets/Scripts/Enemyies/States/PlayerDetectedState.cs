@@ -1,15 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-public class MoveState : State
+/// <summary>
+/// 检测到玩家进入攻击范围的状态
+/// </summary>
+public class PlayerDetectedState : State
 {
-    protected D_MoveState stateData;
+    protected D_PlayerDetected stateData;
 
-    protected bool isDetectingWall;
-    protected bool isDetectingLedge;
     protected bool isPlayerInMinAgroRange;
-    public MoveState(Entity entity, FiniteStateMachine stateMachine, string animBoolName, D_MoveState stateData) : base(entity, stateMachine, animBoolName)
+    protected bool isPlayerInMaxAgroRange;
+    public PlayerDetectedState(Entity entity, FiniteStateMachine stateMachine, string animBoolName, D_PlayerDetected stateData) : base(entity, stateMachine, animBoolName)
     {
         this.stateData = stateData;
     }
@@ -17,11 +18,11 @@ public class MoveState : State
     public override void Enter()
     {
         base.Enter();
-        entity.SetVelocity(stateData.movementSpeed); // 设置速度, 速度值在数据容器中配置
 
-        isDetectingLedge = entity.CheckLedge();
-        isDetectingWall = entity.CheckWall();
+        entity.SetVelocity(0);
+
         isPlayerInMinAgroRange = entity.CheckPlayerInMinAgroRange();
+        isPlayerInMaxAgroRange = entity.CheckPlayerInMaxAgroRange();
     }
 
     public override void Exit()
@@ -38,8 +39,7 @@ public class MoveState : State
     {
         base.PhysicsUpdate();
 
-        isDetectingLedge = entity.CheckLedge();
-        isDetectingWall = entity.CheckWall();
         isPlayerInMinAgroRange = entity.CheckPlayerInMinAgroRange();
+        isPlayerInMaxAgroRange = entity.CheckPlayerInMaxAgroRange();
     }
 }
