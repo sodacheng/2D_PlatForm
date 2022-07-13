@@ -25,7 +25,11 @@ public class E1_PlayerDetectedState : PlayerDetectedState
         base.LogicUpdate();
 
         // 切换状态
-        if(performLongRangeAction) // 玩家还在怪物的最大仇恨范围内
+        if(performCloseRangeAction)
+        {
+            stateMachine.ChangeState(enemy.meleeAttackState);
+        }
+        else if(performLongRangeAction) // 玩家还在怪物的最大仇恨范围内
         {
             stateMachine.ChangeState(enemy.chargeState);
         }
@@ -33,7 +37,11 @@ public class E1_PlayerDetectedState : PlayerDetectedState
         {
             stateMachine.ChangeState(enemy.lookForPlayerState);
         }
-
+        else if(!isDetectingLedge) // 怪物在平台边缘
+        {
+            entity.Flip();
+            stateMachine.ChangeState(enemy.moveState);
+        }
     }
 
     public override void PhysicsUpdate()

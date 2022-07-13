@@ -28,17 +28,24 @@ public class E1_ChargeState : ChargeState
     public override void LogicUpdate()
     {
         base.LogicUpdate();
-
-        if(!isDetectingLedge || isDetectingWall) // 冲刺到撞墙/平台边缘, 转向寻找玩家的状态
+        if (performCloseRangeAction)
+        {
+            stateMachine.ChangeState(enemy.meleeAttackState);
+        }
+        else if (!isDetectingLedge || isDetectingWall) // 冲刺到撞墙/平台边缘, 转向寻找玩家的状态
         {
             stateMachine.ChangeState(enemy.lookForPlayerState);
         }
 
         else if (isChargeTimeOver) // 一次冲向玩家的行为结束
         {
-            if(isPlayerInMinAgroRange) // 如果玩家还在最小仇恨范围内
+            if (isPlayerInMinAgroRange) // 如果玩家还在最小仇恨范围内
             {
                 stateMachine.ChangeState(enemy.playerDetectedState); // 检测到玩家在最小仇恨的状态
+            }
+            else
+            {
+                stateMachine.ChangeState(enemy.lookForPlayerState);
             }
         }
     }
