@@ -10,7 +10,7 @@ public class State
     protected FiniteStateMachine stateMachine;
     protected Entity entity; // 声明他属于哪个实体
 
-    protected float startTime;
+    public float startTime { get; protected set; } // 进入状态的开始时间
 
     protected string animBoolName; // 我们不必关心动画设置, 只需要保证参数和状态名匹配
 

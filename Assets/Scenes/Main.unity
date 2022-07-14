@@ -9011,6 +9011,7 @@ MonoBehaviour:
   lookForPlayerData: {fileID: 11400000, guid: d83dbfe32bf88e0459ff40b2640b33fb, type: 2}
   stunStateData: {fileID: 11400000, guid: 0da495c9f22da9a49a973643ecac8135, type: 2}
   deadStateData: {fileID: 11400000, guid: 40e9c9888ff13784aa6b472e063209ce, type: 2}
+  dogdeStateData: {fileID: 11400000, guid: b1656cad07a4ac34181b8e8e1dcfbc66, type: 2}
   meleeAttackPosition: {fileID: 1715557055}
 --- !u!4 &925362640
 Transform:
