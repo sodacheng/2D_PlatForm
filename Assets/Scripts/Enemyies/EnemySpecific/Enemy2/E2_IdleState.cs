@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class E1_LookForPlayerState : LookForPlayerState
+public class E2_IdleState : IdleState
 {
-    private Enemy1 enemy;
-    public E1_LookForPlayerState(Entity entity, FiniteStateMachine stateMachine, string animBoolName, D_LookForPlayer stateData, Enemy1 enemy) : base(entity, stateMachine, animBoolName, stateData)
+    private Enemy2 enemy;
+
+    public E2_IdleState(Entity entity, FiniteStateMachine stateMachine, string animBoolName, D_IdleState stateData, Enemy2 enemy) : base(entity, stateMachine, animBoolName, stateData)
     {
         this.enemy = enemy;
     }
@@ -28,15 +29,15 @@ public class E1_LookForPlayerState : LookForPlayerState
     public override void LogicUpdate()
     {
         base.LogicUpdate();
-
-        if (isPlayerInMinAgroRange) // 发现了玩家在最小仇恨范围内
+        if(isPlayerInMinAgroRange)
         {
             stateMachine.ChangeState(enemy.playerDetectedState);
         }
-        else if(isAllTurnsTimeDown) // 警戒巡逻时间结束(没有找到玩家)
+        else if (isIdleTimeOver)
         {
             stateMachine.ChangeState(enemy.moveState);
         }
+
     }
 
     public override void PhysicsUpdate()

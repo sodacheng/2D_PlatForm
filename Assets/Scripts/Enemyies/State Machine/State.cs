@@ -46,6 +46,10 @@ public class State
         DoChecks();
     }
 
+
+    /// <summary>
+    /// 对周围环境的检测,持续更新设置的相关Bool值, 会在Enter() 和 PhysicsUpdate()中调用
+    /// </summary>
     public virtual void DoChecks()
     {
 

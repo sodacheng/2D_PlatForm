@@ -6,7 +6,7 @@ using UnityEngine;
 /// </summary>
 public class AnimationToStateMachine : MonoBehaviour
 {
-    public AttackState attackState; // 引用AttackState
+    public AttackState attackState; // 引用AttackState 该脚本被Entity获取
     private void TriggerAttack()
     {
         attackState.TriggerAttack();

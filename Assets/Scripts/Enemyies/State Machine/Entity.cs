@@ -9,7 +9,7 @@ public class Entity : MonoBehaviour
 {
     public FiniteStateMachine stateMachine;
 
-    public D_Entity entityData; // 数据容器
+    public D_Entity entityData; // 基础数据容器
 
     public int facingDirection { get; private set; } // 朝向方向
 

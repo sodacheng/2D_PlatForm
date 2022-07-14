@@ -9,7 +9,7 @@ public class LookForPlayerState : State
     protected bool turnImmediately;
     protected bool isPlayerInMinAgroRange; // 在最小仇恨范围
     protected bool isAllTurnsDone; // 完成了所有的寻找转向次数
-    protected bool isAllTurnsTimeDonw;
+    protected bool isAllTurnsTimeDown;
 
     protected float lastTurnTime;
 
@@ -32,7 +32,7 @@ public class LookForPlayerState : State
         base.Enter();
 
         isAllTurnsDone = false;
-        isAllTurnsTimeDonw = false;
+        isAllTurnsTimeDown = false;
         lastTurnTime = startTime;
         amountOfTurnsDone = 0;
 
@@ -71,7 +71,7 @@ public class LookForPlayerState : State
         // 完成了最后一个转弯且等待一个转弯时间
         if (Time.time >= lastTurnTime + stateData.timeBetweenTurns && isAllTurnsDone)
         {
-            isAllTurnsTimeDonw = true;
+            isAllTurnsTimeDown = true;
         }
     }
 
