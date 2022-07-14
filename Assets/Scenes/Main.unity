@@ -9222,7 +9222,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1243916850}
-  m_Layer: 9
+  m_Layer: 0
   m_Name: rangedAttackPosition
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9237,7 +9237,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1243916849}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.3, y: -0.103, z: 0}
+  m_LocalPosition: {x: 0.305, y: -0.151, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 911624640}
@@ -42452,12 +42452,12 @@ PrefabInstance:
     - target: {fileID: 2702832210671459979, guid: 94b89855462a5b8488696f1976ed2692,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -12.06
+      value: 0.61
       objectReference: {fileID: 0}
     - target: {fileID: 2702832210671459979, guid: 94b89855462a5b8488696f1976ed2692,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 8.014
+      value: -5.72
       objectReference: {fileID: 0}
     - target: {fileID: 2702832210671459979, guid: 94b89855462a5b8488696f1976ed2692,
         type: 3}
@@ -42497,6 +42497,16 @@ PrefabInstance:
     - target: {fileID: 2702832210671459979, guid: 94b89855462a5b8488696f1976ed2692,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2702832210933747271, guid: 94b89855462a5b8488696f1976ed2692,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2702832210933747271, guid: 94b89855462a5b8488696f1976ed2692,
+        type: 3}
+      propertyPath: m_LocalPosition.y
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []

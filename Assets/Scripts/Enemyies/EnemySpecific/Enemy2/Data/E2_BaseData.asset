@@ -18,7 +18,7 @@ MonoBehaviour:
   ledgeCheckDistance: 0.4
   groudCheckRadius: 0.3
   minAgroDistance: 7.5
-  maxAgroDistance: 8.5
+  maxAgroDistance: 8
   stunResistance: 3
   stunRecoveryTime: 2
   closeRangeActionDistance: 1.42
