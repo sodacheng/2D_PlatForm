@@ -8,6 +8,8 @@ public class PlayerState
     protected PlayerStateMachine stateMachine;
     protected PlayerData playerData;
 
+    protected bool isAnimationFinished;
+
     protected float startTime;
 
     private string animBoolName; // 告诉Animator该播放什么动画
@@ -28,6 +30,7 @@ public class PlayerState
         player.Anim.SetBool(animBoolName, true);
         startTime = Time.time;
         Debug.Log(animBoolName);
+        isAnimationFinished = false;
     }
 
     public virtual void Exit()
@@ -49,4 +52,11 @@ public class PlayerState
     {
 
     }
+
+    public virtual void AnimationTriiger()
+    {
+
+    }
+
+    public virtual void AnimationFinishTrigger() => isAnimationFinished = true;
 }
