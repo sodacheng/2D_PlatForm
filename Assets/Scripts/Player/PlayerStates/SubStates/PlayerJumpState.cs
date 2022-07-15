@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// TODO: BUG 跳跃次数大于2 也只能跳两次
+/// </summary>
 public class PlayerJumpState : PlayerAbilityState
 {
     private int amountOfjumpsLeft;
