@@ -8,12 +8,14 @@ public class Player : MonoBehaviour
     public PlayerStateMachine StateMachine { get; private set; }
     public PlayerIdleState IdleState { get; private set; }
     public PlayerMoveState MoveState { get; private set; }
-    [SerializeField]
-    private PlayerData playerData;
     public PlayerJumpState JumpState { get; private set; }
     public PlayerInAirState InAirState { get; private set; }
     public PlayerLandState LandState { get; private set; }
-
+    public PlayerWallSlideState wallSlideState { get; private set; }
+    public PlayerWallGrabState wallGrabState { get; private set; }
+    public PlayerWallClimbState wallClimbState { get; private set; }
+    [SerializeField]
+    private PlayerData playerData;
     #endregion
 
     #region Components
@@ -25,6 +27,8 @@ public class Player : MonoBehaviour
     #region CheckTransforms
     [SerializeField]
     private Transform groundCheck;
+    [SerializeField]
+    private Transform wallCheck;
     #endregion
 
     #region Other Variables
@@ -44,12 +48,15 @@ public class Player : MonoBehaviour
         JumpState = new PlayerJumpState(this, StateMachine, playerData, "inAir");
         InAirState = new PlayerInAirState(this, StateMachine, playerData, "inAir");
         LandState = new PlayerLandState(this, StateMachine, playerData, "land");
+        wallSlideState = new PlayerWallSlideState(this, StateMachine, playerData, "wallSlide");
+        wallGrabState = new PlayerWallGrabState(this, StateMachine, playerData, "wallGrab");
+        wallClimbState = new PlayerWallClimbState(this, StateMachine, playerData, "wallClimb");
     }
 
     private void Start()
     {
         Anim = GetComponent<Animator>();
-        InputHandler = GetComponent<PlayerInputHandler>(); 
+        InputHandler = GetComponent<PlayerInputHandler>();
         RB = GetComponent<Rigidbody2D>();
         FacingDirection = 1;
 
@@ -93,9 +100,14 @@ public class Player : MonoBehaviour
         }
     }
 
+    public bool CheckIfTouchingWall()
+    {
+        return Physics2D.Raycast(wallCheck.position, Vector2.right * FacingDirection, playerData.wallCheckDistance, playerData.whatIsGround);
+    }
+
     public bool CheckIfGrounded()
     {
-        return Physics2D.OverlapCircle(groundCheck.position, playerData.groundCheckRadius,playerData.whatIsGround);
+        return Physics2D.OverlapCircle(groundCheck.position, playerData.groundCheckRadius, playerData.whatIsGround);
     }
     #endregion
 

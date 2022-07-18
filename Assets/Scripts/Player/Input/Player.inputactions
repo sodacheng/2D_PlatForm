@@ -22,13 +22,22 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Grab",
+                    "type": "Button",
+                    "id": "b68658ae-b145-467c-8ced-8dea6fbfeb61",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
                 {
                     "name": "",
                     "id": "5ae79bf6-8e7e-424e-a698-6a8798323919",
-                    "path": "<Gamepad>/leftStick",
+                    "path": "<Joystick>/stick",
                     "interactions": "",
                     "processors": "StickDeadzone",
                     "groups": "GamePad",
@@ -105,11 +114,33 @@
                 {
                     "name": "",
                     "id": "83d7e6dc-5ef7-4c2e-b6fa-daee43978e6b",
-                    "path": "<Gamepad>/buttonSouth",
+                    "path": "<HID::8BitDo 8BitDo Lite 2>/button2",
                     "interactions": "",
                     "processors": "",
                     "groups": "GamePad",
                     "action": "Jump",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c4198a0b-bd05-4ef9-9217-b4c62ee93ed0",
+                    "path": "<Keyboard>/ctrl",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyBoard",
+                    "action": "Grab",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f54d0068-3de0-4349-a11a-d153cff32e4f",
+                    "path": "<HID::8BitDo 8BitDo Lite 2>/button10",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "GamePad",
+                    "action": "Grab",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

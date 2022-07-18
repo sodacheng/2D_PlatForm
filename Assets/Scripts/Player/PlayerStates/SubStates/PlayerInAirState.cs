@@ -6,10 +6,12 @@ public class PlayerInAirState : PlayerState
 {
     private int xInput;
     private bool isGrounded;
+    private bool isTouchingWall;
     private bool jumpInput;
     private bool jumpInputStop;
     private bool coyoteTime;  // 指玩家离开跳跃平台边缘，在短短数帧之内跳跃仍然有效的一段时间
     private bool isJumping;
+    private bool grabInput;
     public PlayerInAirState(Player player, PlayerStateMachine stateMachine, PlayerData playerData, string animBoolName) : base(player, stateMachine, playerData, animBoolName)
     {
     }
@@ -18,6 +20,7 @@ public class PlayerInAirState : PlayerState
     {
         base.Dochecks();
         isGrounded = player.CheckIfGrounded();
+        isTouchingWall = player.CheckIfTouchingWall();
     }
 
     public override void Enter()
@@ -39,6 +42,7 @@ public class PlayerInAirState : PlayerState
         xInput = player.InputHandler.NormInputX;
         jumpInput = player.InputHandler.JumpInput;
         jumpInputStop = player.InputHandler.JumptInputStop;
+        grabInput = player.InputHandler.GrabInput;
 
         CheckJumpMultiplier();
 
@@ -49,6 +53,14 @@ public class PlayerInAirState : PlayerState
         else if (jumpInput && player.JumpState.CanJump())
         {
             stateMachine.ChangeState(player.JumpState);
+        }
+        else if(isTouchingWall && grabInput)
+        {
+            stateMachine.ChangeState(player.wallGrabState);
+        }
+        else if(isTouchingWall && xInput == player.FacingDirection && player.CurrentVelocity.y <= 0.0f)
+        {
+            stateMachine.ChangeState(player.wallSlideState);
         }
         else
         {
