@@ -25,12 +25,12 @@ public class PlayerMoveState : PlayerGroundState
 
     public override void LogicUpdate()
     {
-        base.LogicUpdate();
+        base.LogicUpdate(); // PlayerGroundState
 
         player.CheckIfSholdFlip(xInput);
 
         player.SetVelocityX(playerData.movementVelocity * xInput);
-        if(xInput == 0)
+        if(xInput == 0 && !isExitingState)
         {
             stateMachine.ChangeState(player.IdleState);
         }

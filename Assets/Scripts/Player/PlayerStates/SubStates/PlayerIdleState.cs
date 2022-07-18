@@ -27,7 +27,7 @@ public class PlayerIdleState : PlayerGroundState
     {
         base.LogicUpdate();
         player.SetVelocityX(0f);
-        if(xInput != 0)
+        if(xInput != 0 && !isExitingState)
         {
             stateMachine.ChangeState(player.MoveState);
         }

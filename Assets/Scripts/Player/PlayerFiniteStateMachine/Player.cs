@@ -14,6 +14,7 @@ public class Player : MonoBehaviour
     public PlayerWallSlideState wallSlideState { get; private set; }
     public PlayerWallGrabState wallGrabState { get; private set; }
     public PlayerWallClimbState wallClimbState { get; private set; }
+    public PlayerWallJumpState wallJumpState { get; private set; }
     [SerializeField]
     private PlayerData playerData;
     #endregion
@@ -51,6 +52,7 @@ public class Player : MonoBehaviour
         wallSlideState = new PlayerWallSlideState(this, StateMachine, playerData, "wallSlide");
         wallGrabState = new PlayerWallGrabState(this, StateMachine, playerData, "wallGrab");
         wallClimbState = new PlayerWallClimbState(this, StateMachine, playerData, "wallClimb");
+        wallJumpState = new PlayerWallJumpState(this, StateMachine, playerData, "inAir");
     }
 
     private void Start()
@@ -89,6 +91,14 @@ public class Player : MonoBehaviour
         RB.velocity = workSpace;
         CurrentVelocity = workSpace;
     }
+
+    public void SetVelocity(float velocity, Vector2 angle, int direction)
+    {
+        angle.Normalize();
+        workSpace.Set(angle.x * velocity * direction, angle.y * velocity);
+        RB.velocity = workSpace;
+        CurrentVelocity = workSpace;
+    }
     #endregion
 
     #region Check Fuctions
@@ -103,6 +113,15 @@ public class Player : MonoBehaviour
     public bool CheckIfTouchingWall()
     {
         return Physics2D.Raycast(wallCheck.position, Vector2.right * FacingDirection, playerData.wallCheckDistance, playerData.whatIsGround);
+    }
+
+    /// <summary>
+    /// 检查身后的墙
+    /// </summary>
+    /// <returns></returns>
+    public bool CheckIfTouchingWallBack()
+    {
+        return Physics2D.Raycast(wallCheck.position, Vector2.right * -FacingDirection, playerData.wallCheckDistance, playerData.whatIsGround);
     }
 
     public bool CheckIfGrounded()
