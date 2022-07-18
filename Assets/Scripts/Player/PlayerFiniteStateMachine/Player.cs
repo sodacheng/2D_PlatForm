@@ -15,6 +15,7 @@ public class Player : MonoBehaviour
     public PlayerWallGrabState wallGrabState { get; private set; }
     public PlayerWallClimbState wallClimbState { get; private set; }
     public PlayerWallJumpState wallJumpState { get; private set; }
+    public PlayerLedgeClimbState ledgeClimbState { get; private set; }
     [SerializeField]
     private PlayerData playerData;
     #endregion
@@ -30,6 +31,8 @@ public class Player : MonoBehaviour
     private Transform groundCheck;
     [SerializeField]
     private Transform wallCheck;
+    [SerializeField]
+    private Transform ledgeCheck;
     #endregion
 
     #region Other Variables
@@ -53,6 +56,7 @@ public class Player : MonoBehaviour
         wallGrabState = new PlayerWallGrabState(this, StateMachine, playerData, "wallGrab");
         wallClimbState = new PlayerWallClimbState(this, StateMachine, playerData, "wallClimb");
         wallJumpState = new PlayerWallJumpState(this, StateMachine, playerData, "inAir");
+        ledgeClimbState = new PlayerLedgeClimbState(this, StateMachine, playerData, "ledgeClimbState");
     }
 
     private void Start()
@@ -99,6 +103,12 @@ public class Player : MonoBehaviour
         RB.velocity = workSpace;
         CurrentVelocity = workSpace;
     }
+
+    public void SetVelocityZero()
+    {
+        RB.velocity = Vector2.zero;
+        CurrentVelocity = Vector2.zero;
+    }
     #endregion
 
     #region Check Fuctions
@@ -108,6 +118,11 @@ public class Player : MonoBehaviour
         {
             Flip();
         }
+    }
+    
+    public bool CheckIfTouchingLedge()
+    {
+        return Physics2D.Raycast(ledgeCheck.position, Vector2.right * FacingDirection, playerData.wallCheckDistance, playerData.whatIsGround);
     }
 
     public bool CheckIfTouchingWall()
@@ -131,7 +146,16 @@ public class Player : MonoBehaviour
     #endregion
 
     #region other Functions
-
+    public Vector2 DetermineCornerPosition()
+    {
+        RaycastHit2D xHit = Physics2D.Raycast(wallCheck.position, Vector2.right * FacingDirection, playerData.wallCheckDistance, playerData.whatIsGround);
+        float xDist = xHit.distance; // 返回从射线原点到撞击点的距离
+        workSpace.Set(xDist * FacingDirection, 0f);
+        RaycastHit2D yHit = Physics2D.Raycast(ledgeCheck.position + (Vector3)(workSpace), Vector2.down, ledgeCheck.position.y - wallCheck.position.y, playerData.whatIsGround);
+        float yDist = yHit.distance;
+        workSpace.Set(wallCheck.position.x + (xDist * FacingDirection), ledgeCheck.position.y - yDist); // 平台角落的确切坐标
+        return workSpace;
+    }
     private void AnimationTrigger() => StateMachine.CurrentState.AnimationTriiger();
 
     private void AnimationFinishTrigger() => StateMachine.CurrentState.AnimationFinishTrigger();

@@ -16,6 +16,7 @@ public class PlayerInAirState : PlayerState
     private bool wallJumpCoyoteTime; // 反墙跳土狼时间中
     private bool isJumping;
     private bool grabInput;
+    private bool isTouchingLedge;
 
     private float startWallJumpCoyoteTime;
     public PlayerInAirState(Player player, PlayerStateMachine stateMachine, PlayerData playerData, string animBoolName) : base(player, stateMachine, playerData, animBoolName)
@@ -31,6 +32,12 @@ public class PlayerInAirState : PlayerState
         isGrounded = player.CheckIfGrounded();
         isTouchingWall = player.CheckIfTouchingWall();
         isTouchingWallBack = player.CheckIfTouchingWallBack();
+        isTouchingLedge = player.CheckIfTouchingLedge();
+
+        if (isTouchingWall && !isTouchingLedge)
+        {
+            player.ledgeClimbState.SetDetectedPosition(player.transform.position); // 保存攀爬位置精确的x和y坐标
+        }
 
         if (!wallJumpCoyoteTime && !isTouchingWall && !isTouchingWallBack && (oldIsTouchingWall || oldIsTouchingWallBack)) //前一帧接触墙壁, 当前帧不接触墙壁, 启动反墙跳土狼时间, 允许反墙跳
         {
@@ -46,6 +53,11 @@ public class PlayerInAirState : PlayerState
     public override void Exit()
     {
         base.Exit();
+
+        oldIsTouchingWall = false;
+        oldIsTouchingWallBack = false;
+        isTouchingWall = false;
+        isTouchingWallBack = false;
     }
 
     public override void LogicUpdate()
@@ -65,6 +77,10 @@ public class PlayerInAirState : PlayerState
         if (isGrounded && player.CurrentVelocity.y < 0.01f)
         {
             stateMachine.ChangeState(player.LandState);
+        }
+        else if (isTouchingWall && !isTouchingLedge)
+        { 
+            stateMachine.ChangeState(player.ledgeClimbState);
         }
         else if (jumpInput && (isTouchingWall || isTouchingWallBack || wallJumpCoyoteTime))
         {

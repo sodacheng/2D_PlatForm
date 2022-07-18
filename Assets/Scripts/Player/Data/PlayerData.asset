@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   movementVelocity: 10
   jumpVelocity: 15
-  amountOfJumps: 2
+  amountOfJumps: 1
   wallJumpVelocity: 20
   wallJumpTime: 0.4
   wallJumpAngle: {x: 1, y: 2}
@@ -22,6 +22,8 @@ MonoBehaviour:
   variableJumpHeightMultiplier: 0.5
   wallSlideVelocity: 2
   wallClimbVelocity: 3
+  startOffset: {x: 0, y: 0}
+  stopOffset: {x: 0, y: 0}
   groundCheckRadius: 0.3
   wallCheckDistance: 0.5
   whatIsGround:
